@@ -64,11 +64,9 @@ def token():
         return {'message': 'There was an error logging in'},400
 
 #connect to firebase database and publish json data
-@app.route('/api/publish', methods=['POST', 'GET'])
+@app.route('/api/publish', methods=['PUT'])
 @check_token
 def publish_data():
-    if request.method == 'GET':
-        return {'message': 'Data published'},200
     ref = db.reference("/events")
     user = auth.verify_id_token(request.headers['authorization'])
     data = {
@@ -76,9 +74,10 @@ def publish_data():
         'name': request.form.get('name'),
         'location': request.form.get('location'),
         'description': request.form.get('description'),
+        'time': request.form.get('time'),
     }
     ref.push().set(data)
-    return {'message': 'Data published'},200
+    return {'message': 'Event added'},200
 
 @app.route('/api/getdata')
 def get_data():
