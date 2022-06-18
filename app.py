@@ -47,6 +47,16 @@ def signup():
                email=email,
                password=password
         )
+        ref = db.reference('/users')
+        ref.set(
+            {
+                user.uid: {
+                    'email': email,
+                    'password': password,
+                    'rating': 0
+                }
+            }
+        )
         return {'message': f'Successfully created user {user.uid}'},200
     except:
         return {'message': 'Error creating user'},400
@@ -67,21 +77,23 @@ def token():
 @app.route('/api/publish', methods=['PUT'])
 @check_token
 def publish_data():
-    ref = db.reference("/events")
-    user = auth.verify_id_token(request.headers['authorization'])
+    token = auth.verify_id_token(request.headers['authorization'])
+    user = auth.get_user(token['uid'])
+    print(user.uid, user.email)
+    ref = db.reference("/users/" + user.uid + "/events")
     data = {
-        'userid': user['uid'],
         'name': request.form.get('name'),
         'location': request.form.get('location'),
         'description': request.form.get('description'),
         'time': request.form.get('time'),
+        'rating': 0,
     }
-    ref.push().set(data)
-    return {'message': 'Event added'},200
+    ref.set(data)
+    return {'message': 'Successfully published data'},200
 
 @app.route('/api/getdata')
 def get_data():
-    ref = db.reference("/events")
+    ref = db.reference("/users")
     data = ref.get()
     return {'data': data}, 200
 
