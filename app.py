@@ -16,7 +16,7 @@ load_dotenv()
 cred = credentials.Certificate('fbadminconfig.json')
 firebase = firebase_admin.initialize_app(cred, 
 {
-    'databaseURL': os.environ['DATABASE']
+    'databaseURL': "https://wafflehacks-284f7-default-rtdb.firebaseio.com/"
 })
 pb = pyrebase.initialize_app(json.load(open('fbconfig.json')))
 
@@ -80,20 +80,21 @@ def publish_data():
     token = auth.verify_id_token(request.headers['authorization'])
     user = auth.get_user(token['uid'])
     print(user.uid, user.email)
-    ref = db.reference("/users/" + user.uid + "/events")
+    ref = db.reference("/events")
     data = {
         'name': request.form.get('name'),
         'location': request.form.get('location'),
         'description': request.form.get('description'),
         'time': request.form.get('time'),
         'rating': 0,
+        'user': user.uid
     }
     ref.set(data)
     return {'message': 'Successfully published data'},200
 
 @app.route('/api/getdata')
 def get_data():
-    ref = db.reference("/users")
+    ref = db.reference("/events")
     data = ref.get()
     return {'data': data}, 200
 
